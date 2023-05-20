@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from jkpre import No
+from jkpre import NoPandasDataException
 
 class Redundancy:
 
@@ -14,7 +14,7 @@ class Redundancy:
         if self.check_if_pandas_df(data):
             self.__data = data
         else:
-            raise NoPandasDataException()
+            raise NoPandasDataException
 
     @property
     def data(self) -> pd.DataFrame:
@@ -22,6 +22,11 @@ class Redundancy:
     
     @data.setter
     def data(self, data: pd.DataFrame) -> None:
-        self.__data = data
+        if self.check_if_pandas_df(data):
+            self.__data = data
+        else:
+            raise NoPandasDataException
+    
+
 
 
