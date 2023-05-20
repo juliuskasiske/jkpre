@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from jkpre import NoPandasDataException
+from plotnine import *
 
 class Redundancy:
 
@@ -15,6 +16,8 @@ class Redundancy:
             self.__data = data
         else:
             raise NoPandasDataException
+        
+        self.__continuous, self.__categorical = None, None
 
     @property
     def data(self) -> pd.DataFrame:
@@ -26,7 +29,67 @@ class Redundancy:
             self.__data = data
         else:
             raise NoPandasDataException
+        
+    @property
+    def categorical(self) -> pd.DataFrame:
+        return self.__categorical
     
+    @categorical.setter
+    def categorical(self, data: pd.DataFrame) -> None:
+        if self.check_if_pandas_df(data):
+            self.__categorical = data
+        else:
+            raise NoPandasDataException
+    
+    @property
+    def continuous(self) -> pd.DataFrame:
+        return self.__continuous
+    
+    @continuous.setter
+    def continuous(self, data: pd.DataFrame) -> None:
+        if self.check_if_pandas_df(data):
+            self.__continuous = data
+        else:
+            raise NoPandasDataException
+        
+    def split_data(self, k = 10, data = None):
+        """Splits DataFrames into metric and categorical tables.
+        The DataFrame is split based on the number of unique
+        levels in each column. Having two separate DataFrames
+        is useful for analysis and visualization.
+
+        Parameters
+        ----------
+        data : pandas.DataFrame
+        DataFrame to be split.
+        k : int, default 10
+        Cutoff threshold for classifying columns as metric or continuous.
+
+        Returns
+        -------
+        df_conts : pandas.DataFrame
+        DataFrame with only metric variables.
+        df_cats : pandas.DataFrame
+        DataFrame with only categorical variables.
+        """
+        if not self.check_if_pandas_df(data):
+            if not self.check_if_pandas_df(self.data):
+                raise NoPandasDataException
+            else:
+                data = self.data
+        
+        cats = []
+        for col in data:
+            if pd.unique(data[col]).size <= k:
+                cats.append(col)
+        df_conts = data.drop(cats, axis = 1)
+        df_cats = data[cats]
+        self.__continuous, self.__categorical = df_conts, df_cats
+        return df_conts, df_cats
+
+
+    
+
 
 
 
