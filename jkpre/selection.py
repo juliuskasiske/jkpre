@@ -1,21 +1,30 @@
 import pandas as pd
 import numpy as np
-from jkpre import NoPandasDataException
 from plotnine import *
+
+class NoPandasDataException(Exception):
+    def __init__(self, passed_data) -> None:
+        super().__init__()
+        self.passed_data = passed_data
+    
+    def __str__(self) -> str:
+        passed_type = type(self.passed_data)
+        return f"{self.__module__} only supports operations on Pandas DataFrames. The one passed is of type {passed_type}"
+    
 
 class Redundancy:
 
     def check_if_pandas_df(data):
-        if data.__module__ == "pandas.core.frame" and data.__class__.__name__ == "DataFrame":
+        if data.__class__.__name__ == "DataFrame" and data.__module__ == "pandas.core.frame":
             return True
         else:
             return False
 
-    def __init__(self, data: pd.DataFrame = None) -> None:
-        if self.check_if_pandas_df(data):
+    def __init__(self, data: pd.DataFrame = pd.DataFrame()) -> None:
+        if Redundancy.check_if_pandas_df(data):
             self.__data = data
         else:
-            raise NoPandasDataException
+            raise NoPandasDataException(data)
         
         self.__continuous, self.__categorical = None, None
 
@@ -25,10 +34,10 @@ class Redundancy:
     
     @data.setter
     def data(self, data: pd.DataFrame) -> None:
-        if self.check_if_pandas_df(data):
+        if Redundancy.check_if_pandas_df(data):
             self.__data = data
         else:
-            raise NoPandasDataException
+            raise NoPandasDataException(data)
         
     @property
     def categorical(self) -> pd.DataFrame:
@@ -36,10 +45,10 @@ class Redundancy:
     
     @categorical.setter
     def categorical(self, data: pd.DataFrame) -> None:
-        if self.check_if_pandas_df(data):
+        if Redundancy.check_if_pandas_df(data):
             self.__categorical = data
         else:
-            raise NoPandasDataException
+            raise NoPandasDataException(data)
     
     @property
     def continuous(self) -> pd.DataFrame:
@@ -47,10 +56,10 @@ class Redundancy:
     
     @continuous.setter
     def continuous(self, data: pd.DataFrame) -> None:
-        if self.check_if_pandas_df(data):
+        if Redundancy.check_if_pandas_df(data):
             self.__continuous = data
         else:
-            raise NoPandasDataException
+            raise NoPandasDataException(data)
         
     def split_data(self, k = 10, data = None):
         """Splits DataFrames into metric and categorical tables.
@@ -72,8 +81,8 @@ class Redundancy:
         df_cats : pandas.DataFrame
         DataFrame with only categorical variables.
         """
-        if not self.check_if_pandas_df(data):
-            if not self.check_if_pandas_df(self.data):
+        if not Redundancy.check_if_pandas_df(data):
+            if not Redundancy.check_if_pandas_df(self.data):
                 raise NoPandasDataException
             else:
                 data = self.data
